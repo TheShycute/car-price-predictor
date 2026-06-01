@@ -32,7 +32,7 @@ def load_data():
     df["year"] = pd.to_numeric(df["year"], errors="coerce")
     df["mileage"] = pd.to_numeric(df["mileage"], errors="coerce")
     df = df.dropna(subset=["price", "year", "mileage"])
-    df = df[(df["price"] > 0) & (df["price"] < 15)]
+    df = df[(df["price"] > 0) & (df["price"] < 200)]
     df = df[(df["year"] >= 2000) & (df["year"] <= 2026)]
     df = df[(df["mileage"] > 0) & (df["mileage"] < 80)]
     

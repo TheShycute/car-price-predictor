@@ -1,84 +1,142 @@
-# 二手车价格分析与预测平台 (Used Car Price Analyzer & Predictor)
+# 🚗 UsedCarInsight — 二手车价格分析与预测平台
 
-> 全国二手车数据爬取 + 可视化分析 + ML价格预测 一体化平台
+> 全国二手车数据爬取 + 3D 可视化分析 + 机器学习价格预测 一体化平台
 
-## 🚀 功能
+[![GitHub stars](https://img.shields.io/github/stars/TheShycute/car-price-predictor?style=social)](https://github.com/TheShycute/car-price-predictor)
 
-- **数据爬取**: 基于 Playwright 自动化爬取瓜子二手车全国 30+ 城市数据
-- **数据清洗**: 品牌提取、特征工程、异常值处理
-- **可视化仪表盘**: ECharts 交互式图表 (品牌均价、年份趋势、城市分布等)
-- **价格预测**: XGBoost 模型预测二手车价格，支持 Web API
+---
 
-## 📁 项目结构
+## 📸 预览
 
-```
-car-price-predictor/
-├── scraper/
-│   ├── guazi_scraper.py      # 单城市爬虫
-│   └── national_scraper.py   # 全国爬虫 (支持断点续传)
-├── app/
-│   ├── app.py                # Flask Web 服务
-│   ├── data_processor.py     # 数据清洗模块
-│   ├── templates/
-│   │   ├── index.html        # 数据仪表盘
-│   │   └── predict.html      # 预测页面
-│   └── static/
-├── model/
-│   └── train_model.py        # XGBoost 模型训练
-├── data/
-│   ├── cars_raw.csv          # 原始爬取数据
-│   └── cars_cleaned.csv      # 清洗后数据
-├── requirements.txt
-└── README.md
-```
+### 数据仪表盘
+![仪表盘](screenshots/dashboard.png)
 
-## 🔧 安装与运行
+### 价格预测
+![价格预测](screenshots/predict.png)
 
-### 1. 安装依赖
-```bash
-pip install -r requirements.txt
-playwright install chromium
-```
+---
 
-### 2. 爬取数据
-```bash
-# 爬取全国 30 城市数据 (需要浏览器窗口)
-python scraper/national_scraper.py
-```
+## ✨ 功能
 
-### 3. 训练预测模型
-```bash
-python model/train_model.py
-```
+- 🕷️ **全国数据爬取** — 基于 Playwright 自动爬取瓜子二手车 40 城市、全价格区间数据
+- 🗺️ **中国地图可视化** — ECharts 中国地图，点击省份查看该省详细分析
+- 📊 **交互式仪表盘** — 深色豪华主题，价格分布 / 品牌对比 / 年份趋势 / 城市排名 / 里程折旧
+- 🔮 **ML 价格预测** — XGBoost 模型，R² = 0.76，输入品牌/城市/年份/里程即时估价
+- 🎨 **3D 粒子背景** — Three.js 动态粒子效果
+- 📡 **RESTful API** — Flask 后端，数据查询 + 预测接口
 
-### 4. 启动 Web 服务
-```bash
-python app/app.py
-# 访问 http://localhost:5000
-```
+---
 
-## 📊 数据字段
+## 📊 数据概览
 
-| 字段 | 说明 |
+| 指标 | 数值 |
 |------|------|
-| name | 车型名称 |
-| year | 上牌年份 |
-| mileage | 行驶里程 (万公里) |
-| city | 所在城市 |
-| price | 价格 (万元) |
-| brand | 品牌 (提取) |
-| car_age | 车龄 (计算) |
+| 总车源 | **26,358** 条 |
+| 覆盖城市 | 40 个 |
+| 价格范围 | ¥0.79 ~ ¥75.31 万 |
+| 品牌数 | 242 个 |
+| 年份范围 | 2005 ~ 2026 |
+
+### 头部城市
+
+| 城市 | 车源数 |
+|------|--------|
+| 广州 | 4,182 |
+| 上海 | 4,011 |
+| 杭州 | 3,598 |
+| 北京 | 2,469 |
+| 南宁 | 2,373 |
+| 成都 | 2,032 |
+| 深圳 | 1,637 |
+| 昆明 | 1,425 |
+
+---
 
 ## 🧠 预测模型
 
 - **算法**: XGBoost Regressor
 - **特征**: 年份、里程、车龄、品牌、城市
-- **评估**: R² ~0.85+, MAE ~0.6万
+- **性能**: R² = 0.76, MAE ≈ 2.35 万
+- **训练数据**: 26,358 条真实交易记录
 
-## 📸 截图
+---
 
-启动后访问 http://localhost:5000 查看数据仪表盘和预测页面。
+## 📁 项目结构
+
+```
+car-price-predictor/
+├── scraper/                  # 数据爬取
+│   ├── full_scraper_v7.py    # 全价格全城市爬虫
+│   └── ...
+├── app/                      # Web 应用
+│   ├── app.py                # Flask 后端 + API
+│   ├── data_processor.py     # 数据清洗
+│   └── templates/
+│       ├── index.html        # 仪表盘 (中国地图 + 图表)
+│       └── predict.html      # 价格预测页
+├── model/                    # 机器学习
+│   ├── train_model.py        # XGBoost 训练
+│   └── price_model.pkl       # 训练好的模型
+├── data/
+│   ├── cars_raw.csv          # 原始数据
+│   └── cars_cleaned.csv      # 清洗后数据
+├── screenshots/              # 截图
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 🔧 安装与运行
+
+### 1. 克隆项目
+```bash
+git clone https://github.com/TheShycute/car-price-predictor.git
+cd car-price-predictor
+```
+
+### 2. 安装依赖
+```bash
+pip install -r requirements.txt
+playwright install chromium
+```
+
+### 3. 爬取数据（可选，仓库中已有示例数据）
+```bash
+python scraper/full_scraper_v7.py
+```
+
+### 4. 训练模型
+```bash
+python model/train_model.py
+```
+
+### 5. 启动 Web 服务
+```bash
+python app/app.py
+# 访问 http://localhost:5000
+```
+
+---
+
+## 🛠️ 技术栈
+
+| 层 | 技术 |
+|----|------|
+| 爬虫 | Playwright + asyncio |
+| 后端 | Flask + pandas |
+| 前端 | ECharts + Three.js + GSAP |
+| 机器学习 | XGBoost + scikit-learn |
+| 样式 | Playfair Display + DM Sans + Dark Theme |
+
+---
 
 ## ⚠️ 声明
 
 本项目仅供学习研究使用。数据来源于公开的二手车平台。请遵守相关网站的使用条款，合理控制爬取频率。
+
+---
+
+## 📝 License
+
+MIT License

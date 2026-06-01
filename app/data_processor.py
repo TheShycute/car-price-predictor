@@ -74,7 +74,7 @@ def load_and_clean(csv_path=None):
     df = df.dropna(subset=["price", "year", "mileage"])
     
     # Filter valid ranges
-    df = df[(df["price"] > 0) & (df["price"] < 15)]
+    df = df[(df["price"] > 0) & (df["price"] < 200)]
     df = df[(df["year"] >= 2000) & (df["year"] <= 2026)]
     df = df[(df["mileage"] > 0) & (df["mileage"] < 80)]
     
