@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二手车价格分析平台</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f6fa; color: #2d3436; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .header nav a { color: rgba(255,255,255,0.9); text-decoration: none; margin-left: 24px; font-size: 15px; padding: 8px 16px; border-radius: 6px; transition: .2s; }
+        .header nav a:hover, .header nav a.active { background: rgba(255,255,255,0.2); }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 24px 40px; }
+        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .stat-card .label { font-size: 13px; color: #636e72; margin-bottom: 6px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #2d3436; }
+        .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 16px; padding: 0 40px 40px; }
+        .chart-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .chart-card h3 { font-size: 16px; margin-bottom: 12px; color: #2d3436; }
+        .chart { height: 350px; }
+        .chart-full { grid-column: 1 / -1; }
+        .chart-full .chart { height: 400px; }
+        .footer { text-align: center; padding: 20px; color: #b2bec3; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚗 二手车价格分析平台</h1>
+        <nav>
+            <a href="/" class="active">数据仪表盘</a>
+            <a href="/predict">价格预测</a>
+        </nav>
+    </div>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="charts">
+        <div class="chart-card">
+            <h3>📊 价格分布</h3>
+            <div class="chart" id="chart_price_dist"></div>
+        </div>
+        <div class="chart-card">
+            <h3>🏷️ 各品牌均价 (Top 20)</h3>
+            <div class="chart" id="chart_brand"></div>
+        </div>
+        <div class="chart-card">
+            <h3>📅 年份 vs 均价</h3>
+            <div class="chart" id="chart_year"></div>
+        </div>
+        <div class="chart-card">
+            <h3>🏙️ 各城市均价</h3>
+            <div class="chart" id="chart_city"></div>
+        </div>
+        <div class="chart-card chart-full">
+            <h3>🔧 里程 vs 均价</h3>
+            <div class="chart" id="chart_mileage"></div>
+        </div>
+    </div>
+
+    <div class="footer">二手车价格分析平台 · 数据来源: 瓜子二手车 · 仅供学习研究</div>
+
+    <script>
+    async function fetchJSON(url) {
+        const resp = await fetch(url);
+        return resp.json();
+    }
+
+    function initChart(id) {
+        return echarts.init(document.getElementById(id));
+    }
+
+    async function loadDashboard() {
+        // Stats
+        const stats = await fetchJSON("/api/stats");
+        document.getElementById("stats").innerHTML = `
+            <div class="stat-card"><div class="label">总车源数</div><div class="value">${stats.total_cars?.toLocaleString()}</div></div>
+            <div class="stat-card"><div class="label">平均价格</div><div class="value">${stats.avg_price} 万</div></div>
+            <div class="stat-card"><div class="label">价格区间</div><div class="value">${stats.min_price} - ${stats.max_price} 万</div></div>
+            <div class="stat-card"><div class="label">平均年份</div><div class="value">${stats.avg_year} 年</div></div>
+            <div class="stat-card"><div class="label">平均里程</div><div class="value">${stats.avg_mileage} 万km</div></div>
+            <div class="stat-card"><div class="label">覆盖城市</div><div class="value">${stats.cities}</div></div>
+        `;
+
+        // Price distribution
+        const priceDist = await fetchJSON("/api/price_distribution");
+        initChart("chart_price_dist").setOption({
+            tooltip: { trigger: "axis" },
+            xAxis: { type: "category", data: priceDist.map(d => d.range) },
+            yAxis: { type: "value", name: "数量" },
+            series: [{ data: priceDist.map(d => d.count), type: "bar", itemStyle: { color: "#667eea" }, barMaxWidth: 40 }]
+        });
+
+        // Brand avg price
+        const brandData = await fetchJSON("/api/price_by_brand");
+        const topBrands = brandData.slice(-20);
+        initChart("chart_brand").setOption({
+            tooltip: { trigger: "axis" },
+            grid: { left: 80 },
+            xAxis: { type: "value", name: "均价(万)" },
+            yAxis: { type: "category", data: topBrands.map(d => d.brand), inverse: true },
+            series: [{ data: topBrands.map(d => d.mean.toFixed(2)), type: "bar", itemStyle: { color: "#f0932b" }, barMaxWidth: 20 }]
+        });
+
+        // Year vs price
+        const yearData = await fetchJSON("/api/price_by_year");
+        initChart("chart_year").setOption({
+            tooltip: { trigger: "axis" },
+            xAxis: { type: "category", data: yearData.map(d => d.year) },
+            yAxis: { type: "value", name: "均价(万)" },
+            series: [{ data: yearData.map(d => d.mean.toFixed(2)), type: "line", smooth: true, lineStyle: { color: "#00b894" }, itemStyle: { color: "#00b894" } }]
+        });
+
+        // City avg price
+        const cityData = await fetchJSON("/api/price_by_city");
+        const topCities = cityData.slice(-25);
+        initChart("chart_city").setOption({
+            tooltip: { trigger: "axis" },
+            grid: { left: 70 },
+            xAxis: { type: "value", name: "均价(万)" },
+            yAxis: { type: "category", data: topCities.map(d => d.city), inverse: true },
+            series: [{ data: topCities.map(d => d.mean.toFixed(2)), type: "bar", itemStyle: { color: "#6c5ce7" }, barMaxWidth: 18 }]
+        });
+
+        // Mileage vs price
+        const mileageData = await fetchJSON("/api/price_by_mileage");
+        initChart("chart_mileage").setOption({
+            tooltip: { trigger: "axis" },
+            xAxis: { type: "category", name: "里程(万公里)", data: mileageData.map(d => d.mileage_bucket + "万") },
+            yAxis: { type: "value", name: "均价(万)" },
+            series: [{ data: mileageData.map(d => d.mean?.toFixed(2)), type: "bar", itemStyle: { color: "#fd79a8" }, barMaxWidth: 30 }]
+        });
+    }
+
+    loadDashboard();
+    window.addEventListener("resize", () => {
+        ["chart_price_dist","chart_brand","chart_year","chart_city","chart_mileage"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { const instance = echarts.getInstanceByDom(el); if (instance) instance.resize(); }
+        });
+    });
+    </script>
+</body>
+</html>

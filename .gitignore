@@ -1,0 +1,28 @@
+# Data files
+data/*.csv
+data/*.json
+
+# Model files
+model/*.pkl
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+chrome_data/
+
+# Environment
+.env
