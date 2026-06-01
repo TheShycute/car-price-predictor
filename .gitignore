@@ -26,3 +26,6 @@ chrome_data/
 
 # Environment
 .env
+
+# Scraper scripts
+scraper/

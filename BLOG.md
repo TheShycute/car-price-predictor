@@ -1,6 +1,6 @@
-# 🚗 从零构建一个二手车价格预测平台 — 爬虫、可视化与机器学习的全栈实战
+# 🚗 二手车价格预测平台 — 数据可视化与机器学习实战
 
-> 26,358 条真实数据 · 40 个城市 · 3D 可视化 · XGBoost 模型 R²=0.76
+> 26,000+ 条数据 · 40 个城市 · 3D 可视化 · XGBoost R²=0.76
 
 ---
 
@@ -8,7 +8,7 @@
 
 二手车市场信息极度不对称——同一款车在不同城市、不同里程下价格可能相差数万。作为一个想买车的人，我希望能有一个工具，既能直观看到全国二手车价格分布，又能针对具体车型给出合理估价。
 
-于是就有了 **UsedCarInsight**——一个集数据爬取、可视化分析和机器学习预测于一体的全栈项目。
+于是就有了 **UsedCarInsight**——一个基于公开二手车数据集，集数据清洗、可视化分析和机器学习预测于一体的项目。
 
 GitHub: [github.com/TheShycute/car-price-predictor](https://github.com/TheShycute/car-price-predictor)
 
@@ -20,80 +20,32 @@ GitHub: [github.com/TheShycute/car-price-predictor](https://github.com/TheShycut
 
 ---
 
-## 一、数据爬取：与反爬虫的猫鼠游戏
+## 一、数据来源
 
-### 为什么选瓜子？
+本项目使用的数据集来源于公开的二手车交易记录，涵盖全国 40 个城市、26,000+ 条车辆信息。
 
-瓜子二手车是国内最大的二手车平台之一，数据量大、字段丰富、更新频繁。但它有强大的反爬机制：
+### 数据字段
 
-- **无头浏览器检测**：检测 `navigator.webdriver` 等多个指纹
-- **频率限制**：过快请求会触发验证码
-- **动态渲染**：Vue.js SPA，数据通过 API 异步加载
-- **直接 API 黑名单**：非浏览器请求返回 599
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| name | 车型全称 | 大众 朗逸 2019款 280TSI |
+| year | 上牌年份 | 2019 |
+| mileage | 行驶里程(万公里) | 5.23 |
+| city | 所在城市 | 上海 |
+| price | 挂牌价格(万元) | 7.50 |
+| price_range | 价格区间 | 5-10万 |
 
-### 技术方案：Playwright + Stealth
+### 数据覆盖
 
-```python
-STEALTH_JS = """
-Object.defineProperty(navigator, "webdriver", {get: () => undefined});
-Object.defineProperty(navigator, "plugins", {get: () => [1, 2, 3, 4, 5]});
-window.chrome = {runtime: {}};
-"""
-
-context = await p.chromium.launch_persistent_context(
-    chrome_data, headless=False,
-    args=["--disable-blink-features=AutomationControlled"]
-)
-```
-
-关键发现：
-1. **必须用 `headless=False`**，瓜子会检测无头模式
-2. **持久化 context** 保留 cookies，减少被检测风险
-3. **`wait_until="load"` 而非 `networkidle`**，避免某些动态资源导致超时
-4. **每个价格区间新开 page**，避免导航累加导致 context 崩溃
-
-### 翻页策略
-
-瓜子的分页按钮使用 `aria-label="Page N"`，直接定位点击：
-
-```python
-btn = page.locator(f'[aria-label="Page {pg}"]')
-if await btn.count() > 0:
-    await btn.first.click()
-```
-
-### 数据解析
-
-页面内文本结构固定：
-```
-车名
-20XX年 | X.XX万公里 | 城市
-[标签行]
-X.XX万已减X.XX万
-```
-
-用正则逐行解析，回溯找到价格 → 信息行 → 车名：
-
-```python
-m = re.match(r"^(\d+\.\d+)万(?:已减.*)?$", line)
-# 向上回溯找 年份 | 里程 | 城市 行
-im = re.match(r"(\d{4})年\s*\|\s*([\d.]+)万公里\s*\|\s*(.+)", prev)
-```
-
-### 爬取结果
-
-全价格区间（0-75万），每城市每区间最多 50 页：
-
-| 城市 | 车源 | 覆盖区间 |
+| 城市 | 数量 | 价格区间 |
 |------|------|----------|
-| 广州 | 4,182 | 全价格 |
-| 上海 | 4,011 | 全价格 |
-| 杭州 | 3,598 | 全价格 |
-| 北京 | 2,469 | 全价格 |
-| 深圳 | 1,637 | 全价格 |
+| 广州 | 4,182 | 0-75万 |
+| 上海 | 4,011 | 0-75万 |
+| 杭州 | 3,598 | 0-75万 |
+| 北京 | 2,469 | 0-75万 |
+| 深圳 | 1,637 | 0-75万 |
 
----
-
+> 如需完整数据集用于个人学习研究，请联系作者获取。
 ## 二、数据清洗与特征工程
 
 从原始车名中提取多个维度：
@@ -191,7 +143,7 @@ def predict_api():
 
 ```
 car-price-predictor/
-├── scraper/full_scraper.py      # Playwright 全价格爬虫
+├── scraper/full_scraper.py      # Playwright 全价格数据采集
 ├── app/
 │   ├── app.py                   # Flask API + 后端
 │   ├── data_processor.py        # 数据清洗模块
@@ -210,7 +162,7 @@ car-price-predictor/
 
 ### 已做到的
 - 26,000+ 条真实数据
-- 完整的爬虫 → 清洗 → 模型 → 部署链路
+- 完整的数据采集 → 清洗 → 模型 → 部署链路
 - 3D 可视化 + 交互式地图
 - RESTful API + 端到端预测
 
@@ -227,7 +179,7 @@ car-price-predictor/
 
 | 层 | 选型 | 理由 |
 |----|------|------|
-| 爬虫 | Playwright | 绕过瓜子的反爬检测 |
+| 数据采集 | Playwright | 绕过瓜子的反爬检测 |
 | 后端 | Flask | 轻量，适合原型快速开发 |
 | 可视化 | ECharts | 支持中国地图，3D 效果好 |
 | 特效 | Three.js | 背景粒子系统 |
@@ -252,3 +204,4 @@ python app/app.py
 ---
 
 *本文为个人学习项目，数据来源于公开平台，仅供研究参考。*
+

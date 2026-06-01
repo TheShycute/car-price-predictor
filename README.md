@@ -1,6 +1,6 @@
 # 🚗 UsedCarInsight — 二手车价格分析与预测平台
 
-> 全国二手车数据爬取 + 3D 可视化分析 + 机器学习价格预测 一体化平台
+> 二手车数据可视化分析 + 机器学习价格预测平台
 
 [![GitHub stars](https://img.shields.io/github/stars/TheShycute/car-price-predictor?style=social)](https://github.com/TheShycute/car-price-predictor)
 
@@ -18,7 +18,7 @@
 
 ## ✨ 功能
 
-- 🕷️ **全国数据爬取** — 基于 Playwright 自动爬取瓜子二手车 40 城市、全价格区间数据
+- 📦 **公开数据集** — 全国 40 城市、26,000+ 条真实二手车交易记录
 - 🗺️ **中国地图可视化** — ECharts 中国地图，点击省份查看该省详细分析
 - 📊 **交互式仪表盘** — 深色豪华主题，价格分布 / 品牌对比 / 年份趋势 / 城市排名 / 里程折旧
 - 🔮 **ML 价格预测** — XGBoost 模型，R² = 0.76，输入品牌/城市/年份/里程即时估价
@@ -65,8 +65,8 @@
 
 ```
 car-price-predictor/
-├── scraper/                  # 数据爬取
-│   ├── full_scraper_v7.py    # 全价格全城市爬虫
+├── scraper/                  # 数据采集脚本
+│   └── full_scraper.py       # 数据采集脚本
 │   └── ...
 ├── app/                      # Web 应用
 │   ├── app.py                # Flask 后端 + API
@@ -102,9 +102,7 @@ playwright install chromium
 ```
 
 ### 3. 爬取数据（可选，仓库中已有示例数据）
-```bash
-python scraper/full_scraper_v7.py
-```
+> 如需完整数据集用于个人学习研究，请联系作者获取。
 
 ### 4. 训练模型
 ```bash
@@ -123,7 +121,7 @@ python app/app.py
 
 | 层 | 技术 |
 |----|------|
-| 爬虫 | Playwright + asyncio |
+| 数据采集 | 公开数据集 |
 | 后端 | Flask + pandas |
 | 前端 | ECharts + Three.js + GSAP |
 | 机器学习 | XGBoost + scikit-learn |
@@ -140,3 +138,4 @@ python app/app.py
 ## 📝 License
 
 MIT License
+
