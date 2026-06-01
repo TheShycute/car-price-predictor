@@ -9,10 +9,10 @@
 ## 📸 预览
 
 ### 数据仪表盘
-![仪表盘](screenshots/dashboard.png)
+![仪表盘](https://raw.githubusercontent.com/TheShycute/car-price-predictor/master/screenshots/dashboard.png)
 
 ### 价格预测
-![价格预测](screenshots/predict.png)
+![价格预测](https://raw.githubusercontent.com/TheShycute/car-price-predictor/master/screenshots/predict.png)
 
 ---
 

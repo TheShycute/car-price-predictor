@@ -14,9 +14,9 @@ GitHub: [github.com/TheShycute/car-price-predictor](https://github.com/TheShycut
 
 ### 最终效果
 
-![仪表盘](screenshots/dashboard.png)
+![仪表盘](https://raw.githubusercontent.com/TheShycute/car-price-predictor/master/screenshots/dashboard.png)
 
-![预测页](screenshots/predict.png)
+![预测页](https://raw.githubusercontent.com/TheShycute/car-price-predictor/master/screenshots/predict.png)
 
 ---
 
@@ -143,7 +143,7 @@ def predict_api():
 
 ```
 car-price-predictor/
-├── scraper/full_scraper.py      # Playwright 全价格数据采集
+├── scraper/                   # 数据采集脚本
 ├── app/
 │   ├── app.py                   # Flask API + 后端
 │   ├── data_processor.py        # 数据清洗模块
@@ -162,7 +162,7 @@ car-price-predictor/
 
 ### 已做到的
 - 26,000+ 条真实数据
-- 完整的数据采集 → 清洗 → 模型 → 部署链路
+- 完整的 数据清洗 → 模型 → 部署链路
 - 3D 可视化 + 交互式地图
 - RESTful API + 端到端预测
 
@@ -179,7 +179,7 @@ car-price-predictor/
 
 | 层 | 选型 | 理由 |
 |----|------|------|
-| 数据采集 | Playwright | 绕过瓜子的反爬检测 |
+| 数据来源 | 公开数据集 | 全国40城真实交易记录 |
 | 后端 | Flask | 轻量，适合原型快速开发 |
 | 可视化 | ECharts | 支持中国地图，3D 效果好 |
 | 特效 | Three.js | 背景粒子系统 |
@@ -195,7 +195,6 @@ car-price-predictor/
 git clone https://github.com/TheShycute/car-price-predictor.git
 cd car-price-predictor
 pip install -r requirements.txt
-playwright install chromium
 python model/train_model.py
 python app/app.py
 # 访问 http://localhost:5000
@@ -203,5 +202,5 @@ python app/app.py
 
 ---
 
-*本文为个人学习项目，数据来源于公开平台，仅供研究参考。*
+*本文为个人学习项目，仅供学习研究参考。*
 
