@@ -1,145 +1,349 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二手车价格分析平台</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f6fa; color: #2d3436; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 24px; }
-        .header nav a { color: rgba(255,255,255,0.9); text-decoration: none; margin-left: 24px; font-size: 15px; padding: 8px 16px; border-radius: 6px; transition: .2s; }
-        .header nav a:hover, .header nav a.active { background: rgba(255,255,255,0.2); }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 24px 40px; }
-        .stat-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .stat-card .label { font-size: 13px; color: #636e72; margin-bottom: 6px; }
-        .stat-card .value { font-size: 28px; font-weight: 700; color: #2d3436; }
-        .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 16px; padding: 0 40px 40px; }
-        .chart-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-        .chart-card h3 { font-size: 16px; margin-bottom: 12px; color: #2d3436; }
-        .chart { height: 350px; }
-        .chart-full { grid-column: 1 / -1; }
-        .chart-full .chart { height: 400px; }
-        .footer { text-align: center; padding: 20px; color: #b2bec3; font-size: 13px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UsedCarInsight · 二手车价格洞察</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#080c14; --bg2:#0f1520; --bg-card:rgba(15,21,32,0.8);
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.1);
+  --text:#e8eaf0; --text2:#8894a8; --text3:#586278;
+  --gold:#d4a853; --gold2:#f0d080; --gold-light:rgba(212,168,83,0.15);
+  --blue:#4d90fe; --blue-light:rgba(77,144,254,0.12);
+  --green:#34c759; --green-light:rgba(52,199,89,0.12);
+  --rose:#e06090; --rose-light:rgba(224,96,144,0.12);
+  --radius:20px;
+  --font-display:'Playfair Display',serif;
+  --font-body:'DM Sans',-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* Ambient background */
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg-glow::before{
+  content:'';position:absolute;top:-40%;left:-20%;width:80%;height:140%;
+  background:radial-gradient(ellipse at center,rgba(212,168,83,0.06) 0%,transparent 70%);
+}
+.bg-glow::after{
+  content:'';position:absolute;bottom:-30%;right:-10%;width:70%;height:120%;
+  background:radial-gradient(ellipse at center,rgba(77,144,254,0.05) 0%,transparent 70%);
+}
+
+#globe-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* Navigation */
+.nav{
+  position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;
+  padding:18px 48px;background:rgba(8,12,20,0.85);backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-logo{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold),#c49530);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+  box-shadow:0 4px 20px rgba(212,168,83,0.25);
+}
+.nav-title{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:-0.5px;}
+.nav-title span{color:var(--gold);}
+.nav-links{display:flex;gap:4px;background:var(--bg2);padding:5px;border-radius:14px;}
+.nav-links a{
+  text-decoration:none;padding:10px 22px;border-radius:11px;
+  font-size:13px;font-weight:500;color:var(--text2);transition:.3s;position:relative;
+}
+.nav-links a:hover{color:var(--text);}
+.nav-links a.active{
+  background:var(--bg-card);color:var(--gold);box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Main layout */
+.main{position:relative;z-index:1;padding:0 48px 60px}
+
+/* Hero */
+.hero{padding:52px 0 40px}
+.hero h1{font-family:var(--font-display);font-size:52px;font-weight:700;line-height:1.1;letter-spacing:-1px;}
+.hero h1 em{font-style:italic;color:var(--gold);}
+.hero-sub{font-size:15px;color:var(--text2);margin-top:10px;letter-spacing:0.3px;}
+.hero-line{width:60px;height:2px;background:var(--gold);margin:20px 0;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px;}
+.stat{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px 24px;backdrop-filter:blur(12px);transition:.4s;cursor:default;position:relative;overflow:hidden;
+}
+.stat::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);
+}
+.stat:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.3);}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.stat-value{font-family:var(--font-display);font-size:38px;font-weight:700;}
+.stat-value.accent{color:var(--gold);}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:4px;}
+
+/* Charts grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.panel{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;backdrop-filter:blur(12px);transition:.4s;position:relative;overflow:hidden;
+}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);}
+.panel:hover{border-color:var(--border2);}
+.panel.full{grid-column:1/-1}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.panel-head h3{font-family:var(--font-display);font-size:16px;font-weight:600;}
+.panel-badge{font-size:10px;font-weight:600;padding:5px 12px;border-radius:20px;text-transform:uppercase;letter-spacing:0.8px;}
+.badge-gold{background:var(--gold-light);color:var(--gold);}
+.badge-blue{background:var(--blue-light);color:var(--blue);}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-rose{background:var(--rose-light);color:var(--rose);}
+.panel-body{height:350px;}
+.panel.full .panel-body{height:420px}
+
+.footer{text-align:center;padding:32px;color:var(--text3);font-size:11px;border-top:1px solid var(--border);letter-spacing:0.5px;}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.stat:nth-child(1){animation:fadeUp .6s .1s both}
+.stat:nth-child(2){animation:fadeUp .6s .2s both}
+.stat:nth-child(3){animation:fadeUp .6s .3s both}
+.stat:nth-child(4){animation:fadeUp .6s .4s both}
+
+@media(max-width:1200px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-    <div class="header">
-        <h1>🚗 二手车价格分析平台</h1>
-        <nav>
-            <a href="/" class="active">数据仪表盘</a>
-            <a href="/predict">价格预测</a>
-        </nav>
+<div class="bg-glow"></div>
+<canvas id="globe-canvas"></canvas>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-logo">🚗</div>
+    <div class="nav-title">UsedCar<span>Insight</span></div>
+  </div>
+  <div class="nav-links">
+    <a href="/" class="active">仪表盘</a>
+    <a href="/predict">价格预测</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="hero">
+    <h1>二手车市场<br><em>价格洞察</em></h1>
+    <div class="hero-line"></div>
+    <p class="hero-sub">基于全国真实交易数据的智能分析与预测平台</p>
+  </div>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-head"><h3>价格分布</h3><span class="panel-badge badge-gold">Distribution</span></div>
+      <div class="panel-body" id="c1"></div>
     </div>
-
-    <div class="stats" id="stats"></div>
-
-    <div class="charts">
-        <div class="chart-card">
-            <h3>📊 价格分布</h3>
-            <div class="chart" id="chart_price_dist"></div>
-        </div>
-        <div class="chart-card">
-            <h3>🏷️ 各品牌均价 (Top 20)</h3>
-            <div class="chart" id="chart_brand"></div>
-        </div>
-        <div class="chart-card">
-            <h3>📅 年份 vs 均价</h3>
-            <div class="chart" id="chart_year"></div>
-        </div>
-        <div class="chart-card">
-            <h3>🏙️ 各城市均价</h3>
-            <div class="chart" id="chart_city"></div>
-        </div>
-        <div class="chart-card chart-full">
-            <h3>🔧 里程 vs 均价</h3>
-            <div class="chart" id="chart_mileage"></div>
-        </div>
+    <div class="panel">
+      <div class="panel-head"><h3>品牌均价对比</h3><span class="panel-badge badge-blue">Top 20</span></div>
+      <div class="panel-body" id="c2"></div>
     </div>
+    <div class="panel">
+      <div class="panel-head"><h3>年份价格趋势</h3><span class="panel-badge badge-green">Trend</span></div>
+      <div class="panel-body" id="c3"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>城市均价排名</h3><span class="panel-badge badge-rose">Cities</span></div>
+      <div class="panel-body" id="c4"></div>
+    </div>
+    <div class="panel full">
+      <div class="panel-head"><h3>里程折旧曲线</h3><span class="panel-badge badge-gold">Depreciation</span></div>
+      <div class="panel-body" id="c5"></div>
+    </div>
+  </div>
+</div>
 
-    <div class="footer">二手车价格分析平台 · 数据来源: 瓜子二手车 · 仅供学习研究</div>
+<footer class="footer">UsedCarInsight · Data from guazi.com · For Educational Purposes · 2026</footer>
 
-    <script>
-    async function fetchJSON(url) {
-        const resp = await fetch(url);
-        return resp.json();
-    }
+<!-- Three.js Globe -->
+<script>
+(function(){
+  const canvas=document.getElementById('globe-canvas');
+  const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true});
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 
-    function initChart(id) {
-        return echarts.init(document.getElementById(id));
-    }
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,100);
+  camera.position.set(0,1.2,8);
 
-    async function loadDashboard() {
-        // Stats
-        const stats = await fetchJSON("/api/stats");
-        document.getElementById("stats").innerHTML = `
-            <div class="stat-card"><div class="label">总车源数</div><div class="value">${stats.total_cars?.toLocaleString()}</div></div>
-            <div class="stat-card"><div class="label">平均价格</div><div class="value">${stats.avg_price} 万</div></div>
-            <div class="stat-card"><div class="label">价格区间</div><div class="value">${stats.min_price} - ${stats.max_price} 万</div></div>
-            <div class="stat-card"><div class="label">平均年份</div><div class="value">${stats.avg_year} 年</div></div>
-            <div class="stat-card"><div class="label">平均里程</div><div class="value">${stats.avg_mileage} 万km</div></div>
-            <div class="stat-card"><div class="label">覆盖城市</div><div class="value">${stats.cities}</div></div>
-        `;
+  // Globe wireframe
+  const geo=new THREE.SphereGeometry(2.4,64,48);
+  const mat=new THREE.MeshBasicMaterial({
+    color:0x1a2540,transparent:true,opacity:0.35,wireframe:true
+  });
+  const globe=new THREE.Mesh(geo,mat);
+  scene.add(globe);
 
-        // Price distribution
-        const priceDist = await fetchJSON("/api/price_distribution");
-        initChart("chart_price_dist").setOption({
-            tooltip: { trigger: "axis" },
-            xAxis: { type: "category", data: priceDist.map(d => d.range) },
-            yAxis: { type: "value", name: "数量" },
-            series: [{ data: priceDist.map(d => d.count), type: "bar", itemStyle: { color: "#667eea" }, barMaxWidth: 40 }]
-        });
+  // Inner solid sphere
+  const geo2=new THREE.SphereGeometry(2.38,64,48);
+  const mat2=new THREE.MeshBasicMaterial({color:0x0f1a30,transparent:true,opacity:0.5});
+  const globe2=new THREE.Mesh(geo2,mat2);
+  scene.add(globe2);
 
-        // Brand avg price
-        const brandData = await fetchJSON("/api/price_by_brand");
-        const topBrands = brandData.slice(-20);
-        initChart("chart_brand").setOption({
-            tooltip: { trigger: "axis" },
-            grid: { left: 80 },
-            xAxis: { type: "value", name: "均价(万)" },
-            yAxis: { type: "category", data: topBrands.map(d => d.brand), inverse: true },
-            series: [{ data: topBrands.map(d => d.mean.toFixed(2)), type: "bar", itemStyle: { color: "#f0932b" }, barMaxWidth: 20 }]
-        });
+  // Particles around globe
+  const particlesGeo=new THREE.BufferGeometry();
+  const count=600;
+  const positions=new Float32Array(count*3);
+  for(let i=0;i<count;i++){
+    const theta=Math.random()*Math.PI*2;
+    const phi=Math.acos(2*Math.random()-1);
+    const r=2.5+Math.random()*1.2;
+    positions[i*3]=r*Math.sin(phi)*Math.cos(theta);
+    positions[i*3+1]=r*Math.sin(phi)*Math.sin(theta);
+    positions[i*3+2]=r*Math.cos(phi);
+  }
+  particlesGeo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  const particlesMat=new THREE.PointsMaterial({
+    color:0xd4a853,size:0.025,transparent:true,opacity:0.7,blending:THREE.AdditiveBlending
+  });
+  const particles=new THREE.Points(particlesGeo,particlesMat);
+  scene.add(particles);
 
-        // Year vs price
-        const yearData = await fetchJSON("/api/price_by_year");
-        initChart("chart_year").setOption({
-            tooltip: { trigger: "axis" },
-            xAxis: { type: "category", data: yearData.map(d => d.year) },
-            yAxis: { type: "value", name: "均价(万)" },
-            series: [{ data: yearData.map(d => d.mean.toFixed(2)), type: "line", smooth: true, lineStyle: { color: "#00b894" }, itemStyle: { color: "#00b894" } }]
-        });
+  // Floating dots ring
+  const ringGeo=new THREE.TorusGeometry(2.7,0.015,16,100);
+  const ringMat=new THREE.MeshBasicMaterial({color:0xd4a853,transparent:true,opacity:0.4});
+  const ring=new THREE.Mesh(ringGeo,ringMat);
+  ring.rotation.x=Math.PI/3;
+  scene.add(ring);
 
-        // City avg price
-        const cityData = await fetchJSON("/api/price_by_city");
-        const topCities = cityData.slice(-25);
-        initChart("chart_city").setOption({
-            tooltip: { trigger: "axis" },
-            grid: { left: 70 },
-            xAxis: { type: "value", name: "均价(万)" },
-            yAxis: { type: "category", data: topCities.map(d => d.city), inverse: true },
-            series: [{ data: topCities.map(d => d.mean.toFixed(2)), type: "bar", itemStyle: { color: "#6c5ce7" }, barMaxWidth: 18 }]
-        });
+  const ring2=new THREE.Mesh(new THREE.TorusGeometry(2.9,0.01,16,80),new THREE.MeshBasicMaterial({color:0x4d90fe,transparent:true,opacity:0.25}));
+  ring2.rotation.x=-Math.PI/4;ring2.rotation.y=Math.PI/6;
+  scene.add(ring2);
 
-        // Mileage vs price
-        const mileageData = await fetchJSON("/api/price_by_mileage");
-        initChart("chart_mileage").setOption({
-            tooltip: { trigger: "axis" },
-            xAxis: { type: "category", name: "里程(万公里)", data: mileageData.map(d => d.mileage_bucket + "万") },
-            yAxis: { type: "value", name: "均价(万)" },
-            series: [{ data: mileageData.map(d => d.mean?.toFixed(2)), type: "bar", itemStyle: { color: "#fd79a8" }, barMaxWidth: 30 }]
-        });
-    }
+  // Ambient light effect
+  const ambientLight=new THREE.AmbientLight(0x222244,0.6);
+  scene.add(ambientLight);
 
-    loadDashboard();
-    window.addEventListener("resize", () => {
-        ["chart_price_dist","chart_brand","chart_year","chart_city","chart_mileage"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { const instance = echarts.getInstanceByDom(el); if (instance) instance.resize(); }
-        });
-    });
-    </script>
+  function animate(){
+    requestAnimationFrame(animate);
+    const t=Date.now()*0.0002;
+    globe.rotation.y+=0.0015;
+    globe2.rotation.y+=0.0015;
+    particles.rotation.y+=0.0008;
+    particles.rotation.x=Math.sin(t)*0.1;
+    ring.rotation.z+=0.0006;
+    ring2.rotation.z-=0.0004;
+    ring2.rotation.x+=0.0003;
+    renderer.render(scene,camera);
+  }
+  animate();
+
+  window.addEventListener('resize',()=>{
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+})();
+</script>
+
+<!-- ECharts -->
+<script>
+const Th={text:'#8894a8',text2:'#586278',gold:'#d4a853',blue:'#4d90fe',green:'#34c759',rose:'#e06090',border:'rgba(255,255,255,0.06)'};
+async function get(u){return(await fetch(u)).json()}
+function ch(id){
+  const c=echarts.init(document.getElementById(id),null,{backgroundColor:'transparent'});
+  c.setOption({textStyle:{color:Th.text},grid:{top:8,right:24,bottom:28,left:56}});
+  return c;
+}
+
+async function init(){
+  const s=await get('/api/stats');
+  document.getElementById('statsRow').innerHTML=[
+    {l:'总车源',v:s.total_cars?.toLocaleString(),sub:'辆'},
+    {l:'市场均价',v:'¥'+s.avg_price+'万',sub:'全国平均',accent:true},
+    {l:'覆盖城市',v:s.cities,sub:'个城市'},
+    {l:'平均车龄',v:(2026-s.avg_year).toFixed(1),sub:'年'},
+  ].map(d=>`<div class="stat">
+    <div class="stat-label">${d.l}</div>
+    <div class="stat-value${d.accent?' accent':''}">${d.v}</div>
+    <div class="stat-sub">${d.sub}</div>
+  </div>`).join('');
+
+  const dist=await get('/api/price_distribution');
+  ch('c1').setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#0f1520',borderColor:'rgba(255,255,255,0.1)',textStyle:{color:Th.text}},
+    xAxis:{type:'category',data:dist.map(d=>d.range),axisLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    series:[{data:dist.map(d=>d.count),type:'bar',
+      itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:Th.gold},{offset:1,color:'rgba(212,168,83,0.2)'}]),borderRadius:[6,6,0,0]},barMaxWidth:36}]
+  });
+
+  const brand=await get('/api/price_by_brand');
+  const tb=brand.slice(-20);
+  ch('c2').setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#0f1520',borderColor:'rgba(255,255,255,0.1)',textStyle:{color:Th.text}},
+    grid:{top:8,right:20,bottom:20,left:80},
+    xAxis:{type:'value',splitLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    yAxis:{type:'category',data:tb.map(d=>d.brand),inverse:true,axisLabel:{color:Th.text,fontSize:12,fontWeight:500}},
+    series:[{data:tb.map(d=>+d.mean.toFixed(2)),type:'bar',
+      itemStyle:{color:new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:Th.blue},{offset:1,color:'rgba(77,144,254,0.2)'}]),borderRadius:[0,4,4,0]},barMaxWidth:16}]
+  });
+
+  const year=await get('/api/price_by_year');
+  ch('c3').setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#0f1520',borderColor:'rgba(255,255,255,0.1)',textStyle:{color:Th.text}},
+    xAxis:{type:'category',data:year.map(d=>d.year),axisLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    series:[{data:year.map(d=>+d.mean.toFixed(2)),type:'line',smooth:true,
+      lineStyle:{color:Th.green,width:2.5},itemStyle:{color:Th.green},symbol:'circle',symbolSize:5,
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(52,199,89,0.15)'},{offset:1,color:'rgba(52,199,89,0)'}])}}]
+  });
+
+  const city=await get('/api/price_by_city');
+  const tc=city.slice(-20);
+  ch('c4').setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#0f1520',borderColor:'rgba(255,255,255,0.1)',textStyle:{color:Th.text}},
+    grid:{top:8,right:20,bottom:20,left:70},
+    xAxis:{type:'value',splitLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    yAxis:{type:'category',data:tc.map(d=>d.city),inverse:true,axisLabel:{color:Th.text,fontSize:12,fontWeight:500}},
+    series:[{data:tc.map(d=>+d.mean.toFixed(2)),type:'bar',
+      itemStyle:{color:new echarts.graphic.LinearGradient(1,0,0,0,[{offset:0,color:Th.rose},{offset:1,color:'rgba(224,96,144,0.2)'}]),borderRadius:[0,4,4,0]},barMaxWidth:14}]
+  });
+
+  const mile=await get('/api/price_by_mileage');
+  ch('c5').setOption({
+    tooltip:{trigger:'axis',backgroundColor:'#0f1520',borderColor:'rgba(255,255,255,0.1)',textStyle:{color:Th.text}},
+    xAxis:{type:'category',data:mile.map(d=>d.mileage_bucket+'万km'),axisLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:Th.border}},axisLabel:{color:Th.text2,fontSize:10}},
+    series:[{data:mile.map(d=>+d.mean?.toFixed(2)),type:'bar',
+      itemStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:Th.gold},{offset:1,color:'rgba(212,168,83,0.1)'}]),borderRadius:[6,6,0,0]},barMaxWidth:30}]
+  });
+}
+
+// GSAP staggered reveal
+window.addEventListener('load',()=>{
+  gsap.from('.stat',{y:40,opacity:0,duration:.7,stagger:.12,ease:'power3.out'});
+  gsap.from('.panel',{y:50,opacity:0,duration:.8,stagger:.1,delay:.5,ease:'power3.out'});
+  gsap.from('.hero h1',{y:30,opacity:0,duration:.8,ease:'power3.out'});
+  gsap.from('.hero-sub',{y:20,opacity:0,duration:.6,delay:.2});
+  gsap.from('.hero-line',{scaleX:0,duration:.8,delay:.3,transformOrigin:'left'});
+  init();
+});
+
+window.addEventListener('resize',()=>{
+  ['c1','c2','c3','c4','c5'].forEach(id=>{
+    const d=document.getElementById(id);
+    if(d){const i=echarts.getInstanceByDom(d);if(i)i.resize()}
+  });
+});
+</script>
 </body>
 </html>

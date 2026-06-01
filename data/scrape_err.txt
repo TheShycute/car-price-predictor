@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "F:\Program Files\codex\codexwork\car-price-predictor-project\scraper\national_scraper.py", line 170, in <module>
+    asyncio.run(main())
+  File "F:\Miniforge\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "F:\Miniforge\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "F:\Miniforge\Lib\asyncio\base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "F:\Program Files\codex\codexwork\car-price-predictor-project\scraper\national_scraper.py", line 161, in main
+    save(all_data)
+  File "F:\Program Files\codex\codexwork\car-price-predictor-project\scraper\national_scraper.py", line 72, in save
+    with open(tmp, "w", encoding="utf-8", newline="") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'F:\\Program Files\\codex\\codexwork\\car-price-predictor\\data\\cars_raw.csv.tmp'
